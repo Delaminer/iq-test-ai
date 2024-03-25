@@ -29,7 +29,10 @@ def draw_contours(image, contours, same_color=False):
     return image_with_contours
 
 def show_image(image):
-    plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+    if len(image.shape) == 2:
+        plt.imshow(image, cmap='gray')
+    else:
+        plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
     plt.axis('off')
     plt.show()
 
@@ -44,10 +47,21 @@ def show_images_grid(images):
     fig, axs = plt.subplots(rows, cols, figsize=(10, 10))
     for i, ax in enumerate(axs.flat):
         if i < len(images):
-            ax.imshow(cv2.cvtColor(images[i], cv2.COLOR_BGR2RGB))
+            if len(images[i].shape) == 2:
+                ax.imshow(images[i], cmap='gray')
+            else:
+                ax.imshow(cv2.cvtColor(images[i], cv2.COLOR_BGR2RGB))
         ax.axis('off')
     plt.tight_layout()
     plt.show()
+
+def get_overlap(image1, image2):
+    assert image1.shape == image2.shape
+    a = np.zeros((image1.shape[0], image1.shape[1], 3), dtype=np.uint8)
+    a[np.where(image1 > 0)] = (0, 255, 0)
+    b = np.zeros((image1.shape[0], image1.shape[1], 3), dtype=np.uint8)
+    b[np.where(image2 > 0)] = (255, 0, 0)
+    return (a + b)
 
 def get_iq_question_images(iq_number, debug=False):
     # Convert number (1-10) to file path "iq_images/iq{i}.png" but with a leading zero if i < 10
