@@ -118,39 +118,104 @@ def get_iq_question_images(iq_number, debug=False):
     desired_width = int(np.max([image.shape[1] for image in grid]))
     desired_height = int(np.max([image.shape[0] for image in grid]))
     # remove border and extra edge to 
-    def resize(image):
+    def resize(image, scale_up):
         # Get the current dimensions of the image
-        current_height, current_width = image.shape[:2]
+        current_height, current_width = image.shape[0], image.shape[1]
+        color_pixels = np.argwhere(image < 255)
+        leftmost_pixel = np.min(color_pixels[:, 1])
+        rightmost_pixel = np.max(color_pixels[:, 1])
+        topmost_pixel = np.min(color_pixels[:, 0])
+        bottommost_pixel = np.max(color_pixels[:, 0])
+        min_padding = 3
+        actual_width = rightmost_pixel - leftmost_pixel + (2 * min_padding)
+        actual_height = bottommost_pixel - topmost_pixel + (2 * min_padding)
         # Calculate the padding required to achieve the desired dimensions
+        if scale_up:
+            # normally, we want to scale the image up from current_height to desired_height
+            # but, because current_width is larger than desired_width, we dont want to scale up so much
+            # that the actual_width is larger than desired_width
+            assert actual_width <= desired_width
+            scale = max(desired_height / current_height, desired_width / actual_width)
+            image = cv2.resize(image, (0, 0), fx=scale, fy=scale)
+
+        current_height, current_width = image.shape[0], image.shape[1]
+
+        # now we should be pretty close to the desired dimensions
+        # assert current_height <= 1.1 * desired_height and current_width <= 1.1 * desired_width
+        # assert current_height >= 0.9 * desired_height and current_width >= 0.9 * desired_width
+        
+        # add extra padding to reach the desired dimensions
         pad_height = max(0, desired_height - current_height)
         pad_width = max(0, desired_width - current_width)
-        # Pad the image with black pixels
-        # image = np.pad(image, ((0, pad_height), (0, pad_width), (0, 0)), mode='constant')
-        image = np.pad(image, ((0, pad_height), (0, pad_width)), mode='constant', constant_values=255)
+        pad_top = pad_height // 2
+        pad_bottom = pad_height - pad_top
+        pad_left = pad_width // 2
+        pad_right = pad_width - pad_left
+        image = np.pad(image, ((pad_top, pad_bottom), (pad_left, pad_right)), mode='constant', constant_values=255)
         # Slice the padded image to the desired dimensions
-        remove_height = max(0, current_height - desired_height)
         remove_width = max(0, current_width - desired_width)
-        remove_top = remove_height // 2
-        remove_bottom = remove_height - remove_top
-        remove_left = remove_width // 2
-        remove_right = remove_width - remove_left
+        if remove_width > 0:
+            color_pixels = np.argwhere(image < 255)
+            leftmost_pixel = np.min(color_pixels[:, 1])
+            rightmost_pixel = np.max(color_pixels[:, 1])
+            extra_width = desired_width - (rightmost_pixel - leftmost_pixel)
+            left = leftmost_pixel - extra_width // 2
+            right = left + desired_width
+            if left < 0:
+                right += -left
+                left = 0
+            if right > image.shape[1]:
+                left -= right - image.shape[1]
+                right = image.shape[1]
+                left = max(0, left)
+            image = image[:, left:right]
+        
+        remove_height = max(0, current_height - desired_height)
+        if remove_height > 0:
+            color_pixels = np.argwhere(image < 255)
+            topmost_pixel = np.min(color_pixels[:, 0])
+            bottommost_pixel = np.max(color_pixels[:, 0])
+            extra_height = desired_height - (bottommost_pixel - topmost_pixel)
+            top = topmost_pixel - extra_height // 2
+            bottom = top + desired_height
+            if top < 0:
+                bottom += -top
+                top = 0
+            if bottom > image.shape[0]:
+                top -= bottom - image.shape[0]
+                bottom = image.shape[0]
+                top = max(0, top)
+            image = image[top:bottom, :]
 
-        # avoid removing more than we need to
-
-        image = image[remove_top:current_height - remove_bottom, remove_left:current_width - remove_right]
+        # remove_left = remove_width // 2
+        # # does this remove any colored pixels?
+        # color_pixels = np.argwhere(image < 255)
+        # leftmost_pixel = np.min(color_pixels[:, 1])
+        # rightmost_pixel = np.max(color_pixels[:, 1])
+        # actual_width = rightmost_pixel - leftmost_pixel + 6 # 3 padding on each side
+        # if actual_width > desired_width:
+        #     # shrink down
+        #     scale = desired_width / actual_width
+        #     image = cv2.resize(image, (0, 0), fx=scale, fy=scale)
+            
+        # if actual_width > desired_width * 0.9:
+        #     # use the actual width, plus some padding to reach desired width
+        #     extra_width = desired_width - actual_width
+        #     left_start = leftmost_pixel - extra_width // 2
+        #     right_end = left_start + desired_width
+        #     image = image[:, left_start:right_end]
+        # else:
+        #     # the actual width is much smaller, so remove from both sides
+        #     remove_left = remove_width // 2
+        #     remove_right = remove_width - remove_left
+        #     image = image[:, remove_left:current_width - remove_right]
         return image
-    grid = [resize(image) for image in grid]
-    # Get the average width and height of the grid images so we can crop each grid image and the choices to the same size
-    # Crop the grid images to the average size
+    
+    grid = [resize(image, False) for image in grid]
+    
+    
     # Invert
     grid = [cv2.bitwise_not(image) for image in grid]
-
-    if debug:
-        print("Grid contours")
-        show_image(draw_contours(image, grid_contours))
-
-        print("Resulting grid images")
-        show_images_grid(grid)
 
     choices = []
 
@@ -168,7 +233,6 @@ def get_iq_question_images(iq_number, debug=False):
     blue_line_rects = sorted(blue_line_rects, key=lambda x: x[1] * image.shape[1] + x[0])
     # get the contents of each rectangle
     rects = []
-
     for x, y, w, h in blue_line_rects:
         # check the rectangle is a reasonable size
         if (w < 10 or h < 10):
@@ -182,10 +246,10 @@ def get_iq_question_images(iq_number, debug=False):
         rects.append((x, y, w, h))
         choice = gray[y+top_height:y+h, x:x+w]
         # rescale the image (based on the y) to that of the grid
-        original_height = choice.shape[0]
-        new_height = grid[0].shape[0]
-        scale = new_height / original_height
-        choice = cv2.resize(choice, (0, 0), fx=scale, fy=scale)
+        # original_height = choice.shape[0]
+        # new_height = grid[0].shape[0]
+        # scale = new_height / original_height
+        # choice = cv2.resize(choice, (0, 0), fx=scale, fy=scale)
         # remove excess left and right
         # original_width = choice.shape[1]
         # new_width = grid[0].shape[1]
@@ -195,9 +259,8 @@ def get_iq_question_images(iq_number, debug=False):
         # original_right = np.max(white_pixels_indices[:, 1])
         # center_x = (original_left + original_right) // 2
         # choice = choice[:, left:right]
-        choice = resize(choice)
+        choice = resize(choice, True)
         choices.append(choice)
-    
     # Invert
     choices = [cv2.bitwise_not(image) for image in choices]
     
@@ -208,12 +271,31 @@ def get_iq_question_images(iq_number, debug=False):
     else:
         answer = None
 
+    grid = [force_to_binary(image) for image in grid]
+    choices = [force_to_binary(image) for image in choices]
+
+    # make sure all of grid and choices are binary and have the same size
+    for image in grid + choices:
+        if len(image.shape) != 2:
+            # throw an error
+            raise ValueError("Image is not grayscale")
+        if image.dtype != np.uint8:
+            # throw an error
+            raise ValueError("Image is not uint8")
+        if image.shape != grid[0].shape:
+            # throw an error
+            raise ValueError(f"Images ({image.shape} vs {grid[0].shape}) are not the same size")
+        if len(np.unique(image)) > 2:
+            # throw an error
+            raise ValueError("Image is not binary")
+
     return grid, choices, answer
 
 def force_to_binary(image):
     # if this is a color image, convert to grayscale
     if len(image.shape) == 3:
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        assert len(image.shape) == 2
 
     # if the image is not already binary, convert it to binary
     if len(np.unique(image)) > 2:
@@ -243,4 +325,7 @@ class ModelTester:
             else:
                 results.append(None)
         return correct / total, correct, total, results
+    
+    def get_question(self, i):
+        return self.dataset[i]
 
