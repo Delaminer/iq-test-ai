@@ -135,7 +135,7 @@ def get_iq_question_images(iq_number, debug=False):
             # but, because current_width is larger than desired_width, we dont want to scale up so much
             # that the actual_width is larger than desired_width
             assert actual_width <= desired_width
-            scale = max(desired_height / current_height, desired_width / actual_width)
+            scale = min(desired_height / current_height, desired_width / actual_width)
             image = cv2.resize(image, (0, 0), fx=scale, fy=scale)
 
         current_height, current_width = image.shape[0], image.shape[1]
