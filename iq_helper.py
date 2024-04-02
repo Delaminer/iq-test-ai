@@ -306,10 +306,10 @@ def force_to_binary(image):
 class ModelTester:
     def __init__(self):
         # each entry in dataset is a tuple of the form (grid, choices, answer)
-        self.dataset = []
-        for i in range(1, 36):
-            grid, choices, answer = get_iq_question_images(i)
-            self.dataset.append((grid, choices, answer))
+        self.dataset = {}
+        for question_number in range(1, 36):
+            grid, choices, answer = get_iq_question_images(question_number)
+            self.dataset[question_number] = (grid, choices, answer)
     
     def test(self, get_prediction):
         correct = 0
@@ -326,6 +326,6 @@ class ModelTester:
                 results.append(None)
         return correct / total, correct, total, results
     
-    def get_question(self, i):
-        return self.dataset[i]
+    def get_question(self, question_number):
+        return self.dataset[question_number]
 

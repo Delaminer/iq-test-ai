@@ -162,26 +162,30 @@ def warp_image(image1, image2):
     similarity = ssim(aligned_img1, image2)
     return similarity
 
-def augmentation_score(augmentation, org_img, dest_img):
-    augmented_image = augmentation(org_img)
-
+def loss(label, prediction):
+    if prediction is None:
+        return float('inf')
     # Try returning just the number of pixels that the image has in common with the destination image
 
     # Rules that make an augmented imge good:
     # 1. It should be similar to the destination image
     # 2. It should have a similar structure to the original image (like number of colored pixels)
-    # return sift_score(augmented_image, dest_img)
-    loss = np.mean((augmented_image - dest_img) ** 2)
-    penalty = np.sum(augmented_image > 0)
+    # return sift_score(augmented_image, label)
+    loss = np.mean((prediction - label) ** 2)
+    penalty = np.sum(prediction > 0)
     # penalty = np.linalg.norm(augmented_image, ord=1)
     # penalty = 1
     # penalty = np.linalg.norm(augmented_image, ord=2)
     if penalty == 0:
         return float('inf')
     # return loss / penalty
-    shared_pixels = np.sum(augmented_image == dest_img)
-    shared_pixels = np.sum(np.bitwise_and(augmented_image, dest_img))
+    shared_pixels = np.sum(prediction == label)
+    shared_pixels = np.sum(np.bitwise_and(prediction, label))
     if shared_pixels == 0:
         return float('inf')
     return 1 / shared_pixels
-    # return 1 / ncc_score(augmented_image, dest_img)
+    # return 1 / ncc_score(prediction, label)
+
+def augmentation_score(augmentation, org_img, dest_img):
+    augmented_image = augmentation(org_img)
+    return loss(dest_img, augmented_image)
