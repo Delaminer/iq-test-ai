@@ -162,9 +162,16 @@ def warp_image(image1, image2):
     similarity = ssim(aligned_img1, image2)
     return similarity
 
-def loss(label, prediction):
+def loss(label, prediction, align=False):
     if prediction is None:
         return float('inf')
+    if align:
+        # center images to their center of mass, so that the bitwise_and operation works
+        label_pos = ndimage.center_of_mass(label)
+        prediction_pos = ndimage.center_of_mass(prediction)
+        prediction_offset = (int(label_pos[0] - prediction_pos[0]), int(label_pos[1] - prediction_pos[1]))
+        prediction = ndimage.shift(prediction, prediction_offset)
+
     # Try returning just the number of pixels that the image has in common with the destination image
 
     # Rules that make an augmented imge good:

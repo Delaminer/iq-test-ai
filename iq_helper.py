@@ -303,6 +303,22 @@ def force_to_binary(image):
 
     return image
 
+def scale_up(image, scale=1.25):
+    if image is None:
+        return None
+    # scale up the image
+    org_shape = image.shape
+    # convert to grayscale if not already
+    if len(np.unique(image)) == 2:
+        image = image.astype(np.uint8) * 255
+    image = cv2.resize(image, (int(image.shape[1] * scale), int(image.shape[0] * scale)))
+    image = force_to_binary(image)
+    # crop edges to maintain the same size
+    rm_width = int((image.shape[1] - org_shape[1]) / 2)
+    rm_height = int((image.shape[0] - org_shape[0]) / 2)
+    image = image[rm_height//2:rm_height//2 + org_shape[0], rm_width//2:rm_width//2 + org_shape[1]]
+    return image
+
 class ModelTester:
     def __init__(self):
         # each entry in dataset is a tuple of the form (grid, choices, answer)
