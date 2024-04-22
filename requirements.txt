@@ -10,3 +10,4 @@ pycocotools
 onnxruntime
 onnx
 scikit-learn
+tqdm
