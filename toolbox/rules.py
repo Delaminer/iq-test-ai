@@ -2,6 +2,26 @@ import numpy as np
 
 use_composed_rules = True
 
+def rotational_left_shift(num, shift, width):
+    """
+    Perform a rotational left bitwise shift on a number.
+
+    Args:
+        num (int): The number to shift.
+        shift (int): The number of positions to shift.
+        width (int): The bit-width of the number.
+
+    Returns:
+        int: The result of the rotational left shift.
+    """
+    # Ensure the number fits within the specified width
+    num &= (1 << width) - 1
+    if shift < 0:
+        shift = -shift  # Convert to positive shift for right rotation
+        return ((num >> shift) | (num << (width - shift))) & ((1 << width) - 1)
+    else:
+        return ((num << shift) | (num >> (width - shift))) & ((1 << width) - 1)
+
 def rule_and(*args, **kwargs):
     if len(args) == 1 and isinstance(args[0], list):
         arr = args[0]
@@ -59,9 +79,13 @@ def constant(i, **kwargs):
         row = data
         return row[0][i] == row[1][i] == row[2][i]
     return f
-def progression(i, **kwargs):
+def progression(i, is_bitwise=False, **kwargs):
     def f(data):
         if use_composed_rules:
+            if is_bitwise:
+                # Either is a shift left or a shift right
+                num_rows = len(data)
+                return any(all(rotational_left_shift(data[row_i][0][i], shift, width) == data[row_i][1][i] and rotational_left_shift(data[row_i][1][i], shift, width) == data[row_i][2][i] for row_i in range(num_rows)) for width in [4, 9] for shift in [1, -1, 2, -2])
             data = np.array(data)
             # add a constant 1 to the end of data in its 3rd dimension
             data = np.concatenate([data, np.ones((data.shape[0], data.shape[1], 1))], axis=2)
