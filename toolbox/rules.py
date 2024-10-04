@@ -175,3 +175,91 @@ def noise(i, **kwargs):
     def f(row):
         return True
     return f
+rule_order = [constant, progression, arithmetic, distribute_three, noise]
+
+all_rule_versions = []
+# Constant
+all_rule_versions.append(constant)
+# Progression
+for width in [4, 9]:
+    for shift in [1, -1, 2, -2]:
+        def bitwise_progression(i, is_bitwise=False, width=width, shift=shift, **kwargs):
+            if not is_bitwise:
+                return lambda data: False
+            def bitwise_f(data, width=width, shift=shift):
+                num_rows = len(data)
+                return all(rotational_left_shift(data[row_i][0][i], shift, width) == data[row_i][1][i] and rotational_left_shift(data[row_i][1][i], shift, width) == data[row_i][2][i] for row_i in range(num_rows))
+            return bitwise_f
+        bitwise_progression.__name__ = f'progression_{width}_{shift}'
+        all_rule_versions.append(bitwise_progression)
+for delta in [1, -1, 2, -2]:
+    def delta_progression(i, is_bitwise=False, delta=delta, **kwargs):
+        if is_bitwise:
+            return lambda data: False
+        def f(data, delta=delta):
+            data = np.array(data)
+            # add a constant 1 to the end of data in its 3rd dimension
+            data = np.concatenate([data, np.ones((data.shape[0], data.shape[1], 1))], axis=2)
+            # make sure this attribute is a progression, so get a constant matrix of all zeros except for the i-th column
+            c1 = np.zeros((3, data.shape[2]))
+            c2 = c1.copy()
+            c1[0, i] = 1
+            c1[1, i] = -1
+            c1[0, data.shape[2] - 1] = delta
+            c2[1, i] = 1
+            c2[2, i] = -1
+            c2[0, data.shape[2] - 1] = delta
+            return all(rule_matrix(c)(data) for c in [c1, c2])
+            # return rule_and(list(rule_matrix(c) for c in [c1, c2]))(data)
+        return f
+    delta_progression.__name__ = f'progression_{delta}'
+    all_rule_versions.append(delta_progression)
+# Arithmetic
+arithmetic_bitwise_equations = []
+arithmetic_bitwise_equations.append(lambda c1, c2, c3: int(c1) & ~int(c2) == int(c3))
+arithmetic_bitwise_equations.append(lambda c1, c2, c3: int(c1) | int(c2) == int(c3))
+for i, equation in enumerate(arithmetic_bitwise_equations):
+    def bitwise_arithmetic(i, is_bitwise=False, equation=equation, **kwargs):
+        if not is_bitwise:
+            return lambda data: False
+        def bitwise_f(data, equation=equation):
+            data = np.array(data)
+            num_rows = data.shape[0]
+            return all(equation(data[row_i][0][i], data[row_i][1][i], data[row_i][2][i]) for row_i in range(num_rows))
+        return bitwise_f
+    bitwise_arithmetic.__name__ = f'{bitwise_arithmetic.__name__}_{i}'
+    all_rule_versions.append(bitwise_arithmetic)
+for sign in [1, -1]:
+    for constant in [0, 1]:
+        def arithmetic_f(i, sign=sign, constant=constant, is_bitwise=False, **kwargs):
+            if is_bitwise:
+                return lambda data: False
+            def f(data, sign=sign, constant=constant):
+                data = np.array(data)
+                # add a constant 1 to the end of data in its 3rd dimension
+                data = np.concatenate([data, np.ones((data.shape[0], data.shape[1], 1))], axis=2)
+                c = np.zeros((3, data.shape[2]))
+                c[0, i] = 1
+                c[1, i] = sign
+                c[2, i] = -1
+                c[0, data.shape[2] - 1] = constant * sign
+                return rule_matrix(c)(data)
+            return f
+        arithmetic_f.__name__ = f'arithmetic_{sign}_{constant}'
+        all_rule_versions.append(arithmetic_f)
+# Distribute three
+def basic_distribute_three(i, **kwargs):
+    def f(data):
+        num_rows = len(data)
+        must_contain = rule_set_of_values([data[0][col][i] for col in range(3)])
+        return all(must_contain([data[row_i][col][i] for col in range(3)]) for row_i in range(num_rows))
+    return f
+all_rule_versions.append(basic_distribute_three)
+# Noise
+def basic_noise(i, **kwargs):
+    def f(row):
+        return True
+    return f
+all_rule_versions.append(basic_noise)
+# rule_order = all_rule_versions
+print([rule.__name__ for rule in rule_order])
