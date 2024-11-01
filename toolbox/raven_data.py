@@ -65,6 +65,7 @@ def display_problem(images, answer=None, my_display_boxes=None):
             ax[i, j].axis('off')
     plt.show()
 
+# Classic load_question for brute-force.ipynb, it misses some features of entities but is enough for 100% classification
 def load_question(filebase, display=False, debug=False):
     # Read the .xml file
     data = parse_xml_to_dict(f'{filebase}.xml')
@@ -79,10 +80,10 @@ def load_question(filebase, display=False, debug=False):
             for entity in entities:
                 bbox = entity['bbox'] # keep as a string since it can be used as a key
                 all_bbox.append(bbox)
-                if debug:
-                    print(bbox)
-        if debug:
-            print("done")
+        #         if debug:
+        #             print(bbox)
+        # if debug:
+        #     print("done")
     # Map each unique bounding box to an index
     bbox_to_index = {}
     for bbox in sorted(all_bbox):
@@ -244,10 +245,10 @@ def load_question3(filebase, parse_mask=True, display=False, debug=False):
             for entity in entities:
                 bbox = entity['bbox'] # keep as a string since it can be used as a key
                 all_bbox.append(bbox)
-                if debug:
-                    print(bbox)
-        if debug:
-            print("done")
+        #         if debug:
+        #             print(bbox)
+        # if debug:
+        #     print("done")
     # Map each unique bounding box to an index
     bbox_to_index = {}
     for bbox in sorted(all_bbox):
@@ -290,10 +291,14 @@ def load_question3(filebase, parse_mask=True, display=False, debug=False):
         display_boxes.append(my_display_boxes)
     
     if display:
+        for prop in ['target', 'structure', 'meta_target', 'meta_structure']:
+            print(prop, data_npz[prop], len(data_npz[prop]) if prop != 'target' else 1)
         display_problem(data_npz['image'], data_npz['target'], display_boxes if debug else None)
     answer = data_npz['target']
 
     return embeddings, embedding_names, answer
+
+
 
 def similarity(embedding1, embedding2):
     score = 1
@@ -444,6 +449,16 @@ def define_shapes2(embeddings, embedding_names):
             shapes.append([embeddings[cell_index][preferences[0][entity_index][cell_index]] for cell_index in range(8)])
     return shapes
 
+# Ground truth shapes using the data format
+def define_shapes_ruled(embeddings, embedding_names, debug=False):
+    all_equal = all([len(embedding) == len(embeddings[0]) for embedding in embeddings[:8]])
+    if all_equal:
+        return [[embedding[shape_index] for embedding in embeddings[:8]] for shape_index in range(len(embeddings[0]))]
+    else:
+        amount_of_permanent_shapes = min([len(embedding) for embedding in embeddings[:8]])
+        permanent_shapes = [[embedding[shape_index] for embedding in embeddings[:8]] for shape_index in range(amount_of_permanent_shapes)]
+        # add bitwise shapes (everything else)
+        return permanent_shapes
 def rle_decode(mask_rle, shape, fill='rle'):
     '''
     mask_rle: run-length as string formated (start length)

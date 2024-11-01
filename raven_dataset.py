@@ -7,7 +7,7 @@ from skimage.transform import resize
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, utils
-
+print("Do not call")
 class dataset(Dataset):
     def __init__(self, root_dir, dataset_type, img_size, transform=None, shuffle=False):
         self.root_dir = root_dir
