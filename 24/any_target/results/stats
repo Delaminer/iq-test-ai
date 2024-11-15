@@ -1,0 +1,12 @@
+(211, 3) (211, 3, 4)
+RegressionIndexModel   use_list= False separate= True min_probability= 0.2
+Accuracy 0.35071090047393366
+(211, 3) (211, 3, 4)
+RegressionIndexModel Data Augmented  use_list= False separate= True min_probability= 0.2
+Accuracy 0.344391785150079
+(211, 3) (211, 3, 4)
+MLPCrossEntropyModel   use_list= False separate= True min_probability= 0.2
+Accuracy 0.3412322274881517
+(211, 3) (211, 3, 4)
+MLPCrossEntropyModel Data Augmented  use_list= False separate= True min_probability= 0.2
+Accuracy 0.31911532385466035

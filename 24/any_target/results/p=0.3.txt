@@ -1,0 +1,97 @@
+
+RegressionIndexModel  use_list=False separate=True min_probability=0.3
+train Average count 329.19928825622776
+
+RegressionIndexModel  use_list=False separate=True min_probability=0.3
+test Average count 334.1943127962085
+
+RegressionIndexModel  use_list=True separate=True min_probability=0.3
+train Average count 1992.8730723606168
+
+RegressionIndexModel  use_list=True separate=True min_probability=0.3
+test Average count 1714.6255924170616
+
+MLPCrossEntropyModel  use_list=False separate=True min_probability=0.3
+train Average count 323.3143534994069
+
+MLPCrossEntropyModel  use_list=False separate=True min_probability=0.3
+test Average count 341.2369668246445
+
+MLPCrossEntropyModel  use_list=True separate=True min_probability=0.3
+train Average count 2091.5551601423485
+
+MLPCrossEntropyModel  use_list=True separate=True min_probability=0.3
+test Average count 1945.2322274881517
+
+MSEOperationPresence RandomForestRegressor use_list=False separate=False min_probability=0.3
+train Average count 223.79240806642943
+
+MSEOperationPresence RandomForestRegressor use_list=False separate=False min_probability=0.3
+test Average count 308.21800947867297
+
+MSEOperationPresence RandomForestRegressor use_list=False separate=True min_probability=0.3
+train Average count 123.84223013048636
+
+MSEOperationPresence RandomForestRegressor use_list=False separate=True min_probability=0.3
+test Average count 367.23222748815164
+
+MSEOperationPresence RandomForestRegressor use_list=True separate=False min_probability=0.3
+train Average count 2304.1897983392646
+
+MSEOperationPresence RandomForestRegressor use_list=True separate=False min_probability=0.3
+test Average count 1803.1279620853081
+
+MSEOperationPresence RandomForestRegressor use_list=True separate=True min_probability=0.3
+train Average count 2090.081850533808
+
+MSEOperationPresence RandomForestRegressor use_list=True separate=True min_probability=0.3
+test Average count 2017.047393364929
+
+MSEOperationPresence SVR use_list=False separate=False min_probability=0.3
+train Average count 386.3950177935943
+
+MSEOperationPresence SVR use_list=False separate=False min_probability=0.3
+test Average count 347.5924170616114
+
+MSEOperationPresence SVR use_list=False separate=True min_probability=0.3
+train Average count 358.59193357058126
+
+MSEOperationPresence SVR use_list=False separate=True min_probability=0.3
+test Average count 385.98104265402844
+
+MSEOperationPresence SVR use_list=True separate=False min_probability=0.3
+train Average count 2113.05931198102
+
+MSEOperationPresence SVR use_list=True separate=False min_probability=0.3
+test Average count 1867.1469194312797
+
+MSEOperationPresence SVR use_list=True separate=True min_probability=0.3
+train Average count 3083.918149466192
+
+MSEOperationPresence SVR use_list=True separate=True min_probability=0.3
+test Average count 2770.2274881516587
+
+MSEOperationPresence MLPRegressor use_list=False separate=False min_probability=0.3
+train Average count 356.3179122182681
+
+MSEOperationPresence MLPRegressor use_list=False separate=False min_probability=0.3
+test Average count 294.66350710900474
+
+MSEOperationPresence MLPRegressor use_list=False separate=True min_probability=0.3
+train Average count 351.3523131672598
+
+MSEOperationPresence MLPRegressor use_list=False separate=True min_probability=0.3
+test Average count 409.7535545023697
+
+MSEOperationPresence MLPRegressor use_list=True separate=False min_probability=0.3
+train Average count 2236.690391459075
+
+MSEOperationPresence MLPRegressor use_list=True separate=False min_probability=0.3
+test Average count 1935.4644549763034
+
+MSEOperationPresence MLPRegressor use_list=True separate=True min_probability=0.3
+train Average count 2112.502965599051
+
+MSEOperationPresence MLPRegressor use_list=True separate=True min_probability=0.3
+test Average count 2007.5734597156397
+
